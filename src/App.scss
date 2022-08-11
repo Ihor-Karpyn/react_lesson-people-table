@@ -2,14 +2,30 @@ iframe {
   display: none;
 }
 
-body {
-  margin: 0;
+table {
+  font-family: arial, sans-serif;
+  border-collapse: collapse;
+  width: 100%;
 }
 
-* {
-  box-sizing: border-box;
+td, th {
+  border: 1px solid #dddddd;
+  text-align: left;
+  padding: 8px;
 }
 
-body {
-  background-color: #E7EBF0;
+tr:nth-child(even) {
+  background-color: #dddddd;
+}
+
+input {
+  padding: 8px;
+  margin: 8px;
+  margin-left: 0;
+
+  width: 300px;
+}
+
+th {
+  cursor: pointer;
 }

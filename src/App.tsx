@@ -1,121 +1,153 @@
 import React from 'react';
-import {
-  Button, Grid, LinearProgress, Paper,
-} from '@mui/material';
-import SentimentVeryDissatisfiedIcon from '@mui/icons-material/SentimentVeryDissatisfied';
 import './App.scss';
-import List from '@mui/material/List';
-import ListItem from '@mui/material/ListItem';
-import ListItemText from '@mui/material/ListItemText';
-import Card from '@mui/material/Card';
-import CardActions from '@mui/material/CardActions';
-import CardContent from '@mui/material/CardContent';
-import Typography from '@mui/material/Typography';
-import { User } from './typedfs';
-import usersFromServer from './people.json';
+import { uuid } from 'uuidv4';
+import peopleFromServer from './people.json';
+
+type Maybe<T> = T | null;
+
+interface User {
+  name: string;
+  sex: string;
+  born: number;
+  died: number;
+  fatherName: Maybe<string>;
+  motherName: Maybe<string>;
+  slug: string;
+}
 
 interface State {
   users: User[];
-  isLoading: boolean;
-  selectedUserSlug: string | null;
+  searchQuery: string;
+  sortBy: keyof User | null;
+  isReverse: boolean;
 }
 
 export class App extends React.Component<{}, State> {
   state: State = {
     users: [],
-    isLoading: false,
-    selectedUserSlug: null,
+    searchQuery: '',
+    sortBy: null,
+    isReverse: false,
   };
 
   componentDidMount() {
-    this.setState({ isLoading: true });
     setTimeout(
-      () => this.setState({ users: usersFromServer, isLoading: false }),
-      1000,
+      () => this.setState({ users: peopleFromServer }),
+      500,
     );
   }
 
-  selectUserHandler(slug: string) {
-    this.setState({ selectedUserSlug: slug });
+  getSortIcon(title: keyof User): string {
+    const { sortBy, isReverse } = this.state;
+
+    if (title !== sortBy) {
+      return '↕';
+    }
+
+    return isReverse
+      ? '🔼'
+      : '️️️️🔽';
   }
 
-  getSelectedUser(): User | null {
-    const { selectedUserSlug, users } = this.state;
+  filterUsers(users: User[]): User[] {
+    const { searchQuery } = this.state;
 
-    return users.find((user) => user.slug === selectedUserSlug) || null;
+    return users.filter(user => (
+      user.name.toLowerCase().includes(searchQuery.toLowerCase().trim())
+    ));
   }
 
-  unselectUser() {
-    this.setState({ selectedUserSlug: null });
+  sortUsers(users: User[]): User[] {
+    const { sortBy, isReverse } = this.state;
+
+    const copy = [...users];
+
+    if (!sortBy) {
+      return users;
+    }
+
+    return copy.sort((a, b) => {
+      const aEl = isReverse
+        ? b[sortBy]
+        : a[sortBy];
+      const bEl = isReverse
+        ? a[sortBy]
+        : b[sortBy];
+
+      if (typeof aEl === 'string' && typeof bEl === 'string') {
+        return aEl.localeCompare(bEl);
+      }
+
+      if (typeof aEl === 'number' && typeof bEl === 'number') {
+        return aEl - bEl;
+      }
+
+      return 0;
+    });
+  }
+
+  changeSortHandler(targetSortBy: keyof User) {
+    const { sortBy, isReverse } = this.state;
+
+    if (sortBy === targetSortBy) {
+      this.setState({ isReverse: !isReverse });
+
+      return;
+    }
+
+    this.setState({ isReverse: false, sortBy: targetSortBy });
   }
 
   render() {
-    const { users, isLoading, selectedUserSlug } = this.state;
-    const selectedUser = this.getSelectedUser();
+    const { users, searchQuery } = this.state;
+    const headers: [keyof User] = Object.keys(users[0] || {}) as [keyof User];
+    let preparedUsers = this.filterUsers(users);
+
+    preparedUsers = this.sortUsers(preparedUsers);
 
     return (
-      <Grid container spacing={3} sx={{ padding: '20px' }}>
-        <Grid item xs={6}>
-          {isLoading && <LinearProgress /> }
+      <div>
+        <h1 style={{ textAlign: 'center' }}>Event listeners</h1>
+        {!users.length && (<h2>Loading...</h2>)}
 
-          {users.length === 0 && !isLoading && (
-            <SentimentVeryDissatisfiedIcon fontSize="large" color="warning" />
+        <input
+          type="search"
+          placeholder="Search by name"
+          onChange={(e) => (
+            this.setState({ searchQuery: e.target.value })
           )}
+          value={searchQuery}
+        />
 
-          {users.length > 0 && (
-            <Paper elevation={12} sx={{ height: '90vh', overflowY: 'auto' }}>
-              <List>
-                {users.map(user => (
-                  <ListItem key={user.slug}>
-                    <ListItemText
-                      primary={user.name}
-                      secondary={user.slug}
-                    />
-                    <Button
-                      variant={user.slug === selectedUserSlug
-                        ? 'contained'
-                        : 'outlined'}
-                      color="info"
-                      onClick={() => this.selectUserHandler(user.slug)}
-                    >
-                      show more
-                    </Button>
-                  </ListItem>
-                ))}
-              </List>
-            </Paper>
-          )}
-        </Grid>
+        <table>
+          <thead>
+            <tr>
+              {headers.map((title) => (
+                <th
+                  key={title}
+                  onClick={() => this.changeSortHandler(title)}
+                >
+                  {`${title} ${this.getSortIcon(title)}`}
+                </th>
+              ))}
+            </tr>
+          </thead>
 
-        <Grid item xs={6}>
-          {selectedUser && (
-            <Paper elevation={12}>
-              <Card sx={{ minWidth: 275 }}>
-                <CardContent>
-                  <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
-                    {selectedUser.name}
-                  </Typography>
-                  <Typography variant="h5" component="div">
-                    {selectedUser.slug}
-                  </Typography>
-                  <Typography sx={{ mb: 1.5 }} color="text.secondary">
-                    {selectedUser.fatherName}
-                  </Typography>
-                  <Typography variant="body2">
-                    {selectedUser.motherName}
-                  </Typography>
-                </CardContent>
-                <CardActions>
-                  <Button onClick={() => this.unselectUser()} size="small">
-                    Unselect
-                  </Button>
-                </CardActions>
-              </Card>
-            </Paper>
-          )}
-        </Grid>
+          <tbody>
+            {preparedUsers.map((user) => {
+              const values = Object.values(user);
 
-      </Grid>
+              return (
+                <tr key={user.slug}>
+                  {values.map((value) => (
+                    <td key={uuid()}>{value}</td>
+                  ))}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     );
   }
 }
