@@ -5,7 +5,7 @@
 
 ## If you don't use **Typescript**
 1. Rename `.tsx` files to `.jsx`
-1. use `eslint-config-react` in `.eslintrs.js` 
+1. use `eslint-config-react` in `.eslintrs.js`
 
 ## Basic tasks
 1. Install all the NPM packages you need and types for them.
@@ -70,7 +70,7 @@
 1. Sort should work together with filtering
 1. The `query` and `sortBy` should stay in the URL when you select a user (keep `location.search` on navigation)
 1. Implement the ability to sort people in both directions `?sortOrder=asc` or `desc`
-    - add [Sort both icon](public/images/sort_both.png) to show that column allows sorting
+    - add [Sort both icon](src/images/sort_both.png) to show that column allows sorting
     - The first click sorts `ascending` (A-Z) the second sorts `descending` (Z-A)
     - add `sort_ask` or `sort_desc` icons accordingly to the applied sorting
 1. Update the `query` in the URL with `debounce` of 500ms
