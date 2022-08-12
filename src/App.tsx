@@ -37,6 +37,12 @@ export class App extends React.Component<{}, State> {
     );
   }
 
+  componentDidUpdate(prevProps: Readonly<{}>, prevState: Readonly<State>, snapshot?: any) {
+    if (this.state.isReverse !== prevState.isReverse) {
+      this.setState({ isReverse: false });
+    }
+  }
+
   getSortIcon(title: keyof User): string {
     const { sortBy, isReverse } = this.state;
 
@@ -87,10 +93,10 @@ export class App extends React.Component<{}, State> {
   }
 
   changeSortHandler(targetSortBy: keyof User) {
-    const { sortBy, isReverse } = this.state;
+    const { sortBy } = this.state;
 
     if (sortBy === targetSortBy) {
-      this.setState({ isReverse: !isReverse });
+      this.setState((prevState) => ({ isReverse: !prevState.isReverse }));
 
       return;
     }
